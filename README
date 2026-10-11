@@ -1,0 +1,93 @@
+House Price Prediction
+
+A regression project that predicts the sale price of houses in the Seattle area (Washington State, USA). It is a learning project that covers the full modelling workflow: cleaning, encoding, scaling, model comparison with cross-validation, hyperparameter tuning, final evaluation and saving the trained model.
+
+Problem
+
+Given the features of a house (size, rooms, condition, year built, location...), predict its sale price in US dollars.
+
+Dataset
+Source: Kaggle, "House price prediction" dataset by shree1992 — https://www.kaggle.com/datasets/shree1992/housedata
+4,600 houses, 18 columns. All houses are in Washington State, mostly the Seattle area (Seattle, Renton, Bellevue, Redmond, Kirkland...), sold between May and July 2014.
+Target: price (USD).
+The data file data.csv is included in this repository for convenience. All rights belong to the original dataset owner; please refer to the Kaggle page above for details.
+Repository Files
+File	Description
+House_Price_Prediction.ipynb	The full workflow: cleaning, encoding, scaling, model comparison, tuning, evaluation and saving the model
+data.csv	The dataset
+ct.joblib	Saved encoder (ColumnTransformer with one-hot encoding)
+scaler.joblib	Saved StandardScaler
+svr_model.joblib	Saved final model (tuned SVR)
+Approach
+Removed rows with an invalid price (price = 0): 49 rows, leaving 4,551.
+Dropped columns that do not help the model: date, street, country.
+One-hot encoded city and statezip.
+Split the data 75% train / 25% test.
+Scaled the features with StandardScaler (fitted on the training set only).
+Trained on the log of the price (log1p) and converted predictions back to dollars (expm1).
+Compared four models with 5-fold cross-validation on the training set.
+Tuned the best model (SVR) with GridSearchCV.
+Evaluated the final model once on the test set.
+Saved the encoder, the scaler and the model with joblib.
+Key Decisions
+
+Removing price = 0. A house cannot sell for zero dollars, so these rows are invalid data.
+
+Dropping date, street and country. date covers only about two months, street is almost unique for every house (it identifies a house, it does not describe it), and country has a single value.
+
+Log transform of the price. The price is strongly skewed (skewness about 25) because of a few very expensive houses. After the log transform the skewness drops to about 0.33. This lowered the test RMSE from about 199,000 to about 175,000 dollars with the same linear model.
+
+Scaling. StandardScaler is fitted on the training set only, so no information from the test set leaks into training. Scaling is needed for SVR. It is applied to all columns, including the one-hot columns, which is not strictly necessary.
+
+Metrics. R² and RMSE, both measured in dollars on the original price, so that models are compared on the same scale.
+
+Model selection. Cross-validation is computed on the training set only, so the test set is used just once, at the end.
+
+Results
+
+Test set (1,138 houses):
+
+Model	R²	RMSE (USD)
+Linear Regression, raw price (baseline)	0.706	198,731
+Linear Regression, log price	0.771	175,475
+SVR, default settings	0.768	176,544
+SVR tuned (C=10, epsilon=0.1)	0.793	166,598
+
+5-fold cross-validation on the training set (R² on the log price):
+
+Model	R² (mean ± std)
+Linear Regression	0.7697 ± 0.0287
+SVR (default)	0.7680 ± 0.0325
+Random Forest	0.7147 ± 0.0320
+XGBoost	0.7437 ± 0.0353
+SVR tuned (C=10, epsilon=0.1)	0.7776
+
+Linear Regression and default SVR are practically tied (the difference is much smaller than the standard deviation). Tuning SVR gave a small but consistent improvement. Random Forest and XGBoost were used with default settings and did not outperform the simpler models; they were not tuned, so this does not prove they are worse in general.
+
+Limitations
+The error is still large: an RMSE of about 167,000 dollars against a median price of about 465,000.
+The data is from 2014 and from one region, so the model should not be used to estimate current prices or prices in other places.
+The test set has only 1,138 houses, including 3 houses above 3 million dollars, which have a large effect on RMSE.
+The one-hot encoder was fitted on the whole dataset before the train/test split. The effect here is small, but fitting it on the training set only (for example in a Pipeline) is the correct practice.
+city and statezip describe the same thing (location) and are both used.
+sqft_living equals sqft_above + sqft_basement for every house, so one of these columns is redundant.
+yr_renovated = 0 (not renovated) is treated as a number, and it is not transformed.
+Outliers (the highest price is 26.6 million dollars) were not removed.
+Random Forest and XGBoost were not tuned.
+The saved model only accepts cities and zip codes that exist in the training data (44 cities and 77 zip codes).
+The model is not deployed yet.
+How to Run
+Clone this repository.
+Install the requirements: pip install pandas numpy scikit-learn xgboost jupyter joblib (a requirements.txt file will be added later).
+Open House_Price_Prediction.ipynb and run all cells. The notebook reads data.csv from the same folder.
+
+The saved .joblib files depend on the scikit-learn version used to create them, so use the same version when loading them.
+
+Technologies
+
+Python, Pandas, NumPy, Scikit-learn, XGBoost, Joblib, Jupyter Notebook
+
+Next Steps (planned, not implemented yet)
+Build a simple API that loads the saved model and returns a price estimate.
+Package the project with Docker.
+Deploy it on AWS.
