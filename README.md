@@ -19,6 +19,7 @@ Given the features of a house (size, rooms, condition, year built, location...),
 |---|---|
 | `House_Price_Prediction.ipynb` | The full workflow: cleaning, encoding, scaling, model comparison, tuning, evaluation and saving the model |
 | `app.py` | FastAPI application that loads the saved model and returns a price estimate |
+| `requirements.txt` | Python libraries (with exact versions) needed to run the API |
 | `data.csv` | The dataset |
 | `ct.joblib` | Saved encoder (`ColumnTransformer` with one-hot encoding) |
 | `scaler.joblib` | Saved `StandardScaler` |
@@ -85,4 +86,65 @@ Linear Regression and default SVR are practically tied (the difference is much s
 - `yr_renovated = 0` (not renovated) is treated as a number, and it is not transformed.
 - Outliers (the highest price is 26.6 million dollars) were not removed.
 - Random Forest and XGBoost were not tuned.
-- The saved model only accepts cities and zip codes that exist in the training data (44 cities and 77 zip
+- The saved model only accepts cities and zip codes that exist in the training data (44 cities and 77 zip codes).
+- The API runs locally only; the model is not deployed yet.
+
+## How to Run
+
+1. Clone this repository.
+2. Install the requirements: `pip install -r requirements.txt` (enough for the API). To run the notebook you also need `pip install xgboost jupyter`.
+3. Open `House_Price_Prediction.ipynb` and run all cells. The notebook reads `data.csv` from the same folder.
+
+The saved `.joblib` files depend on the scikit-learn version used to create them (the version in `requirements.txt`), so use the same version when loading them.
+
+## API
+
+A small FastAPI application (`app.py`) loads the saved encoder, scaler and model and returns a price estimate for a house. It currently runs locally only.
+
+Start the server from the project folder:
+
+```
+uvicorn app:app --reload
+```
+
+Then open http://127.0.0.1:8000/docs, choose `POST /predict`, click **Try it out** and **Execute**.
+
+Example request body:
+
+```json
+{
+  "bedrooms": 3,
+  "bathrooms": 1.5,
+  "sqft_living": 1340,
+  "sqft_lot": 7912,
+  "floors": 1.5,
+  "waterfront": 0,
+  "view": 0,
+  "condition": 3,
+  "sqft_above": 1340,
+  "sqft_basement": 0,
+  "yr_built": 1955,
+  "yr_renovated": 2005,
+  "city": "Shoreline",
+  "statezip": "WA 98133"
+}
+```
+
+Example response:
+
+```json
+{
+  "predicted_price_usd": 304716.86
+}
+```
+
+If the `city` or `statezip` was not in the training data, the API returns a `422` error such as `Unknown city: Atlantis`.
+
+## Technologies
+
+Python, Pandas, NumPy, Scikit-learn, XGBoost, Joblib, FastAPI, Uvicorn, Jupyter Notebook
+
+## Next Steps (planned, not implemented yet)
+
+- Package the project with Docker.
+- Deploy it on AWS.
