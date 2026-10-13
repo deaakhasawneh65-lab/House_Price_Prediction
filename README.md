@@ -1,6 +1,6 @@
 # House Price Prediction
 
-A regression project that predicts the sale price of houses in the Seattle area (Washington State, USA). It is a learning project that covers the full modelling workflow: cleaning, encoding, scaling, model comparison with cross-validation, hyperparameter tuning, final evaluation and saving the trained model.
+A regression project that predicts the sale price of houses in the Seattle area (Washington State, USA). It is a learning project that covers the full modelling workflow: cleaning, encoding, scaling, model comparison with cross-validation, hyperparameter tuning, final evaluation and saving the trained model. A small API serves the model locally.
 
 ## Problem
 
@@ -18,6 +18,7 @@ Given the features of a house (size, rooms, condition, year built, location...),
 | File | Description |
 |---|---|
 | `House_Price_Prediction.ipynb` | The full workflow: cleaning, encoding, scaling, model comparison, tuning, evaluation and saving the model |
+| `app.py` | FastAPI application that loads the saved model and returns a price estimate |
 | `data.csv` | The dataset |
 | `ct.joblib` | Saved encoder (`ColumnTransformer` with one-hot encoding) |
 | `scaler.joblib` | Saved `StandardScaler` |
@@ -84,23 +85,4 @@ Linear Regression and default SVR are practically tied (the difference is much s
 - `yr_renovated = 0` (not renovated) is treated as a number, and it is not transformed.
 - Outliers (the highest price is 26.6 million dollars) were not removed.
 - Random Forest and XGBoost were not tuned.
-- The saved model only accepts cities and zip codes that exist in the training data (44 cities and 77 zip codes).
-- The model is not deployed yet.
-
-## How to Run
-
-1. Clone this repository.
-2. Install the requirements: `pip install pandas numpy scikit-learn xgboost jupyter joblib` (a `requirements.txt` file will be added later).
-3. Open `House_Price_Prediction.ipynb` and run all cells. The notebook reads `data.csv` from the same folder.
-
-The saved `.joblib` files depend on the scikit-learn version used to create them, so use the same version when loading them.
-
-## Technologies
-
-Python, Pandas, NumPy, Scikit-learn, XGBoost, Joblib, Jupyter Notebook
-
-## Next Steps (planned, not implemented yet)
-
-- Build a simple API that loads the saved model and returns a price estimate.
-- Package the project with Docker.
-- Deploy it on AWS.
+- The saved model only accepts cities and zip codes that exist in the training data (44 cities and 77 zip
