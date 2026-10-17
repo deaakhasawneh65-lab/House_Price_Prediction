@@ -1,6 +1,6 @@
 # House Price Prediction
 
-A regression project that predicts the sale price of houses in the Seattle area (Washington State, USA). It is a learning project that covers the full modelling workflow: cleaning, encoding, scaling, model comparison with cross-validation, hyperparameter tuning, final evaluation and saving the trained model. A small API serves the model, and it is packaged with Docker.
+A regression project that predicts the sale price of houses in the Seattle area (Washington State, USA). It is a learning project that covers the full modelling workflow: cleaning, encoding, scaling, model comparison with cross-validation, hyperparameter tuning, final evaluation and saving the trained model. A small API serves the model, it is packaged with Docker, and it was tested on AWS.
 
 ## Problem
 
@@ -21,6 +21,7 @@ Given the features of a house (size, rooms, condition, year built, location...),
 | `app.py` | FastAPI application that loads the saved model and returns a price estimate |
 | `requirements.txt` | Python libraries (with exact versions) needed to run the API |
 | `Dockerfile` | Builds the Docker image that runs the API |
+| `images/` | Screenshots of the AWS test deployment |
 | `data.csv` | The dataset |
 | `ct.joblib` | Saved encoder (`ColumnTransformer` with one-hot encoding) |
 | `scaler.joblib` | Saved `StandardScaler` |
@@ -88,7 +89,7 @@ Linear Regression and default SVR are practically tied (the difference is much s
 - Outliers (the highest price is 26.6 million dollars) were not removed.
 - Random Forest and XGBoost were not tuned.
 - The saved model only accepts cities and zip codes that exist in the training data (44 cities and 77 zip codes).
-- The API runs locally or in Docker only; it is not deployed to the cloud yet.
+- The API was deployed on AWS only as a short test; it has no authentication, no monitoring and no live demo.
 
 ## How to Run
 
@@ -154,10 +155,29 @@ Then open http://127.0.0.1:8000/docs and use `POST /predict` as described above.
 
 The image is based on `python:3.13-slim` and installs the exact versions from `requirements.txt`. It contains only what the API needs (`app.py` and the three `.joblib` files). The notebook and the dataset are not copied into it.
 
+## Deployment on AWS
+
+The Docker image was deployed on AWS as a test and then taken down, so there is no live demo link.
+
+- The image was pushed to **Amazon ECR** (private repository).
+- The service was created with **Amazon ECS Express Mode** in `eu-north-1` (Stockholm). It runs the container on AWS Fargate (1 vCPU, 2 GB, one task) behind an Application Load Balancer with HTTPS.
+- The container port is 8000 and the health check path is `/`.
+- `POST /predict` returned status 200 with `predicted_price_usd: 304716.86` for the example request above, the same value as locally and in Docker.
+- All AWS resources were deleted after the test to avoid cost.
+
+![API docs on AWS](images/aws-docs-ui.png)
+
+![Prediction result on AWS](images/aws-predict-result.png)
+
+![ECS service active](images/aws-ecs-service-active.png)
+
+Everything was created manually from the AWS console. There is no infrastructure as code, no CI/CD, no authentication and no monitoring yet.
+
 ## Technologies
 
-Python, Pandas, NumPy, Scikit-learn, XGBoost, Joblib, FastAPI, Uvicorn, Docker, Jupyter Notebook
+Python, Pandas, NumPy, Scikit-learn, XGBoost, Joblib, FastAPI, Uvicorn, Docker, AWS (ECR, ECS Fargate), Jupyter Notebook
 
 ## Next Steps (planned, not implemented yet)
 
--
+- CI/CD with GitHub Actions.
+- Monitoring.
