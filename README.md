@@ -167,7 +167,7 @@ The Docker image was deployed on AWS as a test and then taken down, so there is 
 
 ![API docs on AWS](images/aws-docs-ui.png)
 
-![Prediction result on AWS](images/aws-predict-result.png)
+![Prediction result](images/aws-predict-result.png)
 
 ![ECS service active](images/aws-ecs-service-active.png)
 
